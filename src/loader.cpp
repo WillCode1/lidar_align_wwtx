@@ -120,46 +120,49 @@ bool Loader::loadTformFromROSBag(const std::string& bag_path, Odom* odom) {
     return false;
   }
 
-     std::vector<std::string> types;
-    types.push_back(std::string("sensor_msgs/Imu"));
-    rosbag::View view(bag, rosbag::TypeQuery(types));
-    size_t imu_num = 0;
-    double shiftX=0,shiftY=0,shiftZ=0,velX=0,velY=0,velZ=0;
-    ros::Time time;
-    double timeDiff,lastShiftX,lastShiftY,lastShiftZ;
-    for (const rosbag::MessageInstance& m : view){
-      std::cout <<"Loading imu: \e[1m"<< imu_num++<<"\e[0m from ros bag"<<'\r'<< std::flush;
- 
-    sensor_msgs::Imu imu=*(m.instantiate<sensor_msgs::Imu>());
- 
-     Timestamp stamp = imu.header.stamp.sec * 1000000ll +imu.header.stamp.nsec / 1000ll;
-     if(imu_num==1){
-         time=imu.header.stamp;
-             Transform T(Transform::Translation(0,0,0),Transform::Rotation(1,0,0,0));
-         odom->addTransformData(stamp, T);
-     }
-     else{
-         timeDiff=(imu.header.stamp-time).toSec();
-         time=imu.header.stamp;
-         velX=velX+imu.linear_acceleration.x*timeDiff;
-         velY=velX+imu.linear_acceleration.y*timeDiff;
-         velZ=velZ+(imu.linear_acceleration.z-9.801)*timeDiff;
-         
-         lastShiftX=shiftX;
-         lastShiftY=shiftY;
-         lastShiftZ=shiftZ;
-         shiftX=lastShiftX+velX*timeDiff+imu.linear_acceleration.x*timeDiff*timeDiff/2;
-         shiftY=lastShiftY+velY*timeDiff+imu.linear_acceleration.y*timeDiff*timeDiff/2;
-         shiftZ=lastShiftZ+velZ*timeDiff+(imu.linear_acceleration.z-9.801)*timeDiff*timeDiff/2;
- 
-         Transform T(Transform::Translation(shiftX,shiftY,shiftZ),
-                Transform::Rotation(imu.orientation.w,
-                         imu.orientation.x,
-                         imu.orientation.y,
-                         imu.orientation.z));
-         odom->addTransformData(stamp, T);
-     }
+  std::vector<std::string> types;
+  types.push_back(std::string("sensor_msgs/Imu"));
+  rosbag::View view(bag, rosbag::TypeQuery(types));
+  size_t imu_num = 0;
+  double shiftX = 0, shiftY = 0, shiftZ = 0, velX = 0, velY = 0, velZ = 0;
+  ros::Time time;
+  double timeDiff, lastShiftX, lastShiftY, lastShiftZ;
+  for (const rosbag::MessageInstance &m : view)
+  {
+    std::cout << "Loading imu: \e[1m" << imu_num++ << "\e[0m from ros bag" << '\r' << std::flush;
+
+    sensor_msgs::Imu imu = *(m.instantiate<sensor_msgs::Imu>());
+
+    Timestamp stamp = imu.header.stamp.sec * 1000000ll + imu.header.stamp.nsec / 1000ll;
+    if (imu_num == 1)
+    {
+      time = imu.header.stamp;
+      Transform T(Transform::Translation(0, 0, 0), Transform::Rotation(1, 0, 0, 0));
+      odom->addTransformData(stamp, T);
     }
+    else
+    {
+      timeDiff = (imu.header.stamp - time).toSec();
+      time = imu.header.stamp;
+      velX = velX + imu.linear_acceleration.x * timeDiff;
+      velY = velX + imu.linear_acceleration.y * timeDiff;
+      velZ = velZ + (imu.linear_acceleration.z - 9.801) * timeDiff;
+
+      lastShiftX = shiftX;
+      lastShiftY = shiftY;
+      lastShiftZ = shiftZ;
+      shiftX = lastShiftX + velX * timeDiff + imu.linear_acceleration.x * timeDiff * timeDiff / 2;
+      shiftY = lastShiftY + velY * timeDiff + imu.linear_acceleration.y * timeDiff * timeDiff / 2;
+      shiftZ = lastShiftZ + velZ * timeDiff + (imu.linear_acceleration.z - 9.801) * timeDiff * timeDiff / 2;
+
+      Transform T(Transform::Translation(shiftX, shiftY, shiftZ),
+                  Transform::Rotation(imu.orientation.w,
+                                      imu.orientation.x,
+                                      imu.orientation.y,
+                                      imu.orientation.z));
+      odom->addTransformData(stamp, T);
+    }
+  }
 /*
   std::vector<std::string> types;
   types.push_back(std::string("geometry_msgs/TransformStamped"));
@@ -185,7 +188,6 @@ bool Loader::loadTformFromROSBag(const std::string& bag_path, Odom* odom) {
                                     transform_msg.transform.rotation.z));
     odom->addTransformData(stamp, T);
   }*/
-
 
   if (odom->empty()) {
     ROS_ERROR_STREAM("No odom messages found!");

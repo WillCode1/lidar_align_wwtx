@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <launch>
 
+  <!-- https://blog.csdn.net/chrishuimin/article/details/125585362 -->
   <arg name="bag_file" default="/home/will/data/work_data/calibration.bag"/>
   <arg name="transforms_from_csv" default="false"/>
   <arg name="csv_file" default="PATH/TO/YOUR.csv"/>
